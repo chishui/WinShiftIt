@@ -165,6 +165,7 @@ LRESULT CMainDlg::OnTrayIcon( UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL&
 			AppendMenu(hMenu, MF_STRING, 1, L"Exit");
 			POINT pt;
 			GetCursorPos(&pt);
+			SetForegroundWindow(m_hWnd);
 			TrackPopupMenu(hMenu, TPM_LEFTALIGN, pt.x, pt.y, 0, m_hWnd, NULL);
 			DestroyMenu(hMenu);
 
