@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="WinShiftIt"
 	ProjectGUID="{CB2D66A2-DDC7-467B-84B2-75F70432CD95}"
+	RootNamespace="WinShiftIt"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -249,5 +250,9 @@
 		</Filter>
 	</Files>
 	<Globals>
+		<Global
+			Name="RESOURCE_FILE"
+			Value="WinShiftIt.rc"
+		/>
 	</Globals>
 </VisualStudioProject>

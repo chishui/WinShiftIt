@@ -35,9 +35,10 @@ public:
 		MESSAGE_HANDLER(WM_HOTKEY, OnHotKey)
 		MESSAGE_HANDLER(WM_TRAYICON, OnTrayIcon)
 		MESSAGE_HANDLER(WM_COMMAND, OnCommand)
-		MESSAGE_HANDLER(WM_TIMER, OnTimer)
+		MESSAGE_HANDLER(WM_TASKBARCREATED,OnTaskBarCreated)
 		COMMAND_ID_HANDLER(IDOK, OnOK)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
+		COMMAND_HANDLER(IDC_CHECK_AUTORUN, BN_CLICKED, OnBnClickedCheckAutorun)
 	END_MSG_MAP()
 
 // Handler prototypes (uncomment arguments if needed):
@@ -52,7 +53,7 @@ public:
 	LRESULT OnHotKey(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT OnTrayIcon(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 	LRESULT OnCommand(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
-	LRESULT OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+	LRESULT OnTaskBarCreated(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
 	void CloseDialog(int nVal);
 
@@ -61,6 +62,11 @@ public:
 	void UnRegisterAllHotKey();
 
 	void RelayoutWindow(HWND hWnd, DWORD dwKey);
+	void CreateTray();
 private:
 	NOTIFYICONDATA m_nid;
+	// 相应任务栏重建消息ID
+	UINT WM_TASKBARCREATED;
+public:
+	LRESULT OnBnClickedCheckAutorun(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 };

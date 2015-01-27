@@ -60,14 +60,13 @@ IDR_MAINFRAME           ICON                    "res\\WinShiftIt.ico"
 // Dialog
 //
 
-IDD_MAINDLG DIALOG  0, 0, 187, 98
-STYLE DS_SETFONT | WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU
-CAPTION "WinShiftIt"
-FONT 8, "MS Shell Dlg"
+IDD_MAINDLG DIALOGEX 0, 0, 165, 137
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU
+CAPTION "WinShiftIt - Setting"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,130,7,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,130,24,50,14
-    PUSHBUTTON      "&About",ID_APP_ABOUT,130,77,50,14
+    CONTROL         "AutoRun",IDC_CHECK_AUTORUN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,45,20,78,10
+    CTEXT           "WinShiftIt: 1.0.0.1002\n\nAuthor: Xiuliyun\n\nContact me: chishui2@gmail.com",IDC_STATIC,7,83,151,47
 END
 
 
@@ -82,9 +81,9 @@ BEGIN
     IDD_MAINDLG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 180
+        RIGHTMARGIN, 158
         TOPMARGIN, 7
-        BOTTOMMARGIN, 91
+        BOTTOMMARGIN, 130
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -96,8 +95,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,0,0,1002
+ PRODUCTVERSION 1,0,0,1002
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -113,12 +112,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "WinShiftIt Module"
-            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "FileVersion", "1, 0, 0, 1002"
             VALUE "InternalName", "WinShiftIt"
             VALUE "LegalCopyright", "Copyright 2015"
             VALUE "OriginalFilename", "WinShiftIt.exe"
             VALUE "ProductName", "WinShiftIt Module"
-            VALUE "ProductVersion", "1, 0, 0, 1"
+            VALUE "ProductVersion", "1, 0, 0, 1002"
         END
     END
     BLOCK "VarFileInfo"

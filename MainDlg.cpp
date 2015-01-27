@@ -20,7 +20,7 @@ enum {
 
 #define MENU_ID(hotkeyid) (hotkeyid + 1000)
 #define DE_MENU_ID(menuid) (menuid - 1000)
-#define DELAY_TIMER 1
+#define SETTING_MENU_ID 5000
 
 static HWND GetCurrentWnd(CPoint pt)
 {
@@ -57,16 +57,8 @@ LRESULT CMainDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
 	RegisterAllHotKey();
 	//create tray
-	::ZeroMemory(&m_nid, sizeof(NOTIFYICONDATA));
-	m_nid.cbSize =  sizeof(NOTIFYICONDATA);
-	m_nid.hWnd = m_hWnd;
-	m_nid.hIcon = hIconSmall;
-	m_nid.uFlags = NIF_ICON | NIF_TIP |NIF_MESSAGE;
-	_tcsncpy(m_nid.szTip, CString(MAKEINTRESOURCE(IDR_MAINFRAME)), 128);
-	m_nid.uCallbackMessage = WM_TRAYICON;
-
-	Shell_NotifyIcon(NIM_ADD,&m_nid);
-
+	CreateTray();
+	WM_TASKBARCREATED = RegisterWindowMessage(_T("TaskbarCreated"));
 	return TRUE;
 }
 
@@ -117,6 +109,9 @@ void CMainDlg::RegisterAllHotKey()
 
 	RegisterHotKey(m_hWnd, CENTER_HOTKEY, MOD_ALT | MOD_CONTROL | MOD_WIN, 'C');
 	RegisterHotKey(m_hWnd, MAXIMIZE_HOTKEY, MOD_ALT | MOD_CONTROL | MOD_WIN, 'M');
+
+	RegisterHotKey(m_hWnd, INCREASE_HOTKEY, MOD_ALT | MOD_CONTROL | MOD_WIN, VK_OEM_PLUS);
+	RegisterHotKey(m_hWnd, REDUCE_HOTKEY, MOD_ALT | MOD_CONTROL | MOD_WIN, VK_OEM_MINUS);
 }
 
 LRESULT CMainDlg::OnHotKey( UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/ )
@@ -155,14 +150,18 @@ LRESULT CMainDlg::OnTrayIcon( UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL&
 			AppendMenu(hMenu, MF_STRING, MENU_ID(RIGHT_HOTKEY), L"Right\t\tCtrl+Win+Alt ¡ú");
 			AppendMenu(hMenu, MF_STRING, MENU_ID(UP_HOTKEY), L"Top\t\tCtrl+Win+Alt ¡ü");
 			AppendMenu(hMenu, MF_STRING, MENU_ID(DOWN_HOTKEY), L"Bottom\t\tCtrl+Win+Alt ¡ý");
+			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
 			AppendMenu(hMenu, MF_STRING, MENU_ID(TOP_LEFT_HOTKEY), L"Top Left\t\tCtrl+Win+Alt 1");
 			AppendMenu(hMenu, MF_STRING, MENU_ID(TOP_RIGHT_HOTKEY), L"Top Right\t\tCtrl+Win+Alt 2");
 			AppendMenu(hMenu, MF_STRING, MENU_ID(BOTTOM_LEFT_HOTKEY), L"Bottom Left\t\tCtrl+Win+Alt 3");
 			AppendMenu(hMenu, MF_STRING, MENU_ID(BOTTOM_RIGHT_HOTKEY), L"Bottom Right\t\tCtrl+Win+Alt 4");
+			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
 			AppendMenu(hMenu, MF_STRING, MENU_ID(CENTER_HOTKEY), L"Center\t\tCtrl+Win+Alt C");
 			AppendMenu(hMenu, MF_STRING, MENU_ID(MAXIMIZE_HOTKEY), L"Maximize\t\tCtrl+Win+Alt M");
 			AppendMenu(hMenu, MF_STRING, MENU_ID(INCREASE_HOTKEY), L"Increase\t\tCtrl+Win+Alt =");
 			AppendMenu(hMenu, MF_STRING, MENU_ID(REDUCE_HOTKEY), L"Reduce\t\tCtrl+Win+Alt -");
+			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
+			AppendMenu(hMenu, MF_STRING, SETTING_MENU_ID, L"Settings");
 			AppendMenu(hMenu, MF_STRING, 1, L"Exit");
 			POINT pt;
 			GetCursorPos(&pt);
@@ -194,6 +193,12 @@ LRESULT CMainDlg::OnCommand( UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BO
 	case MENU_ID(REDUCE_HOTKEY):
 		RelayoutWindow(NULL, DE_MENU_ID(LOWORD(wParam)));
 		break;
+	case SETTING_MENU_ID:
+		{	
+			ShowWindow(SW_SHOW);
+			CenterWindow();
+		}	
+		break;
 	default:
 		bHandled = FALSE;
 		break;
@@ -203,6 +208,7 @@ LRESULT CMainDlg::OnCommand( UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BO
 
 void CMainDlg::RelayoutWindow( HWND hWnd, DWORD dwKey )
 {
+	static const int SIZE_CHANGED = 30;
 	RECT rc;
 	SystemParametersInfo(SPI_GETWORKAREA,0,&rc,0);
 	CRect rcWorkArea(rc);
@@ -272,22 +278,93 @@ void CMainDlg::RelayoutWindow( HWND hWnd, DWORD dwKey )
 			::PostMessage(hWnd, WM_SYSCOMMAND, SC_MAXIMIZE, NULL);
 		}
 		break;
+	case INCREASE_HOTKEY:
+		{
+			CRect rcWindow;
+			::GetWindowRect(hWnd, rcWindow);
+			rcWindow.InflateRect(SIZE_CHANGED, SIZE_CHANGED, SIZE_CHANGED, SIZE_CHANGED);
+			int nWidth = rcWindow.Width();
+			int nHeight = rcWindow.Height();
+			if (rcWindow.left < rcWorkArea.left || rcWindow.right > rcWorkArea.right)
+			{
+				rcWindow.left = rcWorkArea.left;
+				rcWindow.right = rcWindow.left + nWidth > rcWorkArea.right ? rcWorkArea.right : rcWindow.left + nWidth;
+			}
+			if (rcWindow.top < rcWorkArea.top || rcWindow.bottom > rcWorkArea.bottom)
+			{
+				rcWindow.top = rcWorkArea.top;
+				rcWindow.bottom = rcWindow.top + nHeight > rcWorkArea.bottom ? rcWorkArea.bottom : rcWindow.top + nHeight;
+			}
+			::MoveWindow(hWnd, rcWindow.left, rcWindow.top, rcWindow.Width(), rcWindow.Height(), TRUE);		
+
+		}
+		break;
+	case REDUCE_HOTKEY:
+		{
+			CRect rcWindow;
+			::GetWindowRect(hWnd, rcWindow);
+			rcWindow.InflateRect(-SIZE_CHANGED, -SIZE_CHANGED, -SIZE_CHANGED, -SIZE_CHANGED);
+			::MoveWindow(hWnd, rcWindow.left, rcWindow.top, rcWindow.Width(), rcWindow.Height(), TRUE);	
+		}
+		break;
 	default:
 		break;
 	}
 }
 
-LRESULT CMainDlg::OnTimer( UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/ )
+
+LRESULT CMainDlg::OnTaskBarCreated( UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/ )
 {
-	switch(wParam)
-	{
-	case DELAY_TIMER:
-		{
-			KillTimer(wParam);
-			
-		}
-		break;
-	}
+	CreateTray();
 	return 0;
 }
 
+void CMainDlg::CreateTray()
+{
+	HICON hIconSmall = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
+	::ZeroMemory(&m_nid, sizeof(NOTIFYICONDATA));
+	m_nid.cbSize =  sizeof(NOTIFYICONDATA);
+	m_nid.hWnd = m_hWnd;
+	m_nid.hIcon = hIconSmall;
+	m_nid.uFlags = NIF_ICON | NIF_TIP |NIF_MESSAGE;
+	_tcsncpy(m_nid.szTip, CString(MAKEINTRESOURCE(IDR_MAINFRAME)), 128);
+	m_nid.uCallbackMessage = WM_TRAYICON;
+
+	Shell_NotifyIcon(NIM_ADD,&m_nid);
+}
+
+static BOOL SetAutoRun(BOOL bAutoRun)
+{
+	TCHAR szPath[MAX_PATH];
+	GetModuleFileName(NULL, szPath, MAX_PATH);
+
+	HKEY hKey;
+	LSTATUS lRet = RegOpenKeyEx(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Run"), 0, KEY_WRITE, &hKey);
+	if(lRet != ERROR_SUCCESS)
+		return FALSE;
+
+	if (bAutoRun)
+	{
+		CString strVal = szPath;
+		lRet = RegSetValueEx(hKey, _T("WinShiftIt"), 0, REG_SZ, (const BYTE *)strVal.GetBuffer(0), sizeof(TCHAR)*strVal.GetLength());
+		strVal.ReleaseBuffer();
+
+		SHDeleteValue( HKEY_LOCAL_MACHINE , _T("Software\\Microsoft\\Windows\\CurrentVersion\\Run"), _T("WinShiftIt") );
+	} 
+	else
+	{
+		lRet = RegDeleteValue(hKey, _T("WinShiftIt"));
+	}
+	RegCloseKey(hKey);
+	if(lRet != ERROR_SUCCESS)
+		return FALSE;
+
+	return TRUE;
+}
+LRESULT CMainDlg::OnBnClickedCheckAutorun(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	CButton check;
+	check.Attach(GetDlgItem(IDC_CHECK_AUTORUN));
+	SetAutoRun(check.GetCheck());
+	return 0;
+}
