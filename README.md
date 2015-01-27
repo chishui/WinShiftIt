@@ -1,6 +1,7 @@
 # WinShiftIt
 This is a windows version of ShiftIt
 WinShiftIt almost realizes the same functions as ShiftIt on osx and uses the same key combinations with ShiftIt as "Ctrl+Win+Alt". 
+The program is compiled on Visual Studio 2008, and uses common lib WTL.
 # Download
 The newest version of WinShift can be found in ‘release’ folder.
 # User Guide
